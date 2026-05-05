@@ -51,7 +51,7 @@ canvas {
   box-shadow: 0 0 25px red;
   width: 75%;
   max-width: 320px;
-  z-index: 99;
+  z-index: 999;
 }
 
 button {
@@ -60,6 +60,7 @@ button {
   border: none;
   border-radius: 10px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .try { background: #00e0ff; color: black; }
@@ -81,8 +82,9 @@ button {
 <div id="popup">
   <h2>RETAKE CONFIRMED 💀</h2>
   <p id="msg">CGPA dropped to 0.00 💀</p>
-  <button class="try" onclick="location.reload()">Try Again 🔁</button>
-  <button class="follow" onclick="followDonkey()">Follow the Donkey 🫏</button>
+
+  <button class="try" id="tryBtn">Try Again 🔁</button>
+  <button class="follow" id="followBtn">Follow the Donkey 🫏</button>
 </div>
 
 <script>
@@ -140,21 +142,48 @@ function startMusic() {
 function jump() {
   startMusic();
   started = true;
+
   if (!gameOver) {
     donkey.velocity = jumpPower;
   }
 }
 
-document.addEventListener("click", jump);
-
+/* ✅ FIXED TOUCH: buttons will not trigger jump */
 document.addEventListener("touchstart", function(e) {
+  if (e.target.tagName === "BUTTON") return;
   e.preventDefault();
   jump();
 }, { passive: false });
 
+document.addEventListener("click", function(e) {
+  if (e.target.tagName === "BUTTON") return;
+  jump();
+});
+
 document.addEventListener("keydown", function(e) {
   if (e.code === "Space") jump();
 });
+
+/* ✅ FIXED BUTTONS */
+document.getElementById("tryBtn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  location.reload();
+});
+
+document.getElementById("followBtn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  window.location.href = "https://www.facebook.com/RealUtsha";
+});
+
+document.getElementById("tryBtn").addEventListener("touchstart", function(e) {
+  e.stopPropagation();
+  location.reload();
+}, { passive: true });
+
+document.getElementById("followBtn").addEventListener("touchstart", function(e) {
+  e.stopPropagation();
+  window.location.href = "https://www.facebook.com/RealUtsha";
+}, { passive: true });
 
 function createPipe() {
   let top = Math.random() * 230 + 60;
@@ -367,10 +396,6 @@ function update() {
   ctx.restore();
 
   requestAnimationFrame(update);
-}
-
-function followDonkey() {
-  window.location.href = "https://www.facebook.com/RealUtsha";
 }
 
 update();
