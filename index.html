@@ -9,22 +9,14 @@ body {
   margin: 0;
   background: #061526;
   color: white;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   text-align: center;
   overflow: hidden;
 }
 
 h1 {
-  margin: 12px 0 4px;
   color: #00e0ff;
-  text-shadow: 0 0 12px #00e0ff;
-  font-size: 24px;
-}
-
-p {
-  margin: 0 0 8px;
-  color: #c9eaff;
-  font-size: 14px;
+  text-shadow: 0 0 10px #00e0ff;
 }
 
 canvas {
@@ -33,7 +25,6 @@ canvas {
   background: linear-gradient(#0b2a4a, #020817);
   border: 3px solid #00e0ff;
   border-radius: 16px;
-  box-shadow: 0 0 25px #00e0ff;
   width: 92vw;
   max-width: 420px;
   height: 72vh;
@@ -42,363 +33,144 @@ canvas {
 #popup {
   display: none;
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.box {
   background: #111;
-  padding: 24px;
-  border-radius: 18px;
-  box-shadow: 0 0 25px red;
-  width: 75%;
+  padding: 25px;
+  border-radius: 15px;
+  width: 80%;
   max-width: 320px;
-  z-index: 999;
 }
 
-button {
-  padding: 12px 18px;
-  margin: 8px;
-  border: none;
+button, a {
+  display: block;
+  width: 80%;
+  margin: 10px auto;
+  padding: 14px;
   border-radius: 10px;
+  border: none;
   font-weight: bold;
-  cursor: pointer;
+  text-decoration: none;
 }
 
-.try { background: #00e0ff; color: black; }
-.follow { background: #ff3333; color: white; }
+.try { background:#00e0ff; color:black; }
+.follow { background:#ff3333; color:white; }
 </style>
 </head>
 
 <body>
 
 <h1>RetakeOrDie 💀</h1>
-<p>Tap to jump 🫏 | Avoid retake pipes</p>
-
-<audio id="music" loop>
-  <source src="music.mp3" type="audio/mpeg">
-</audio>
 
 <canvas id="game"></canvas>
 
 <div id="popup">
-  <h2>RETAKE CONFIRMED 💀</h2>
-  <p id="msg">CGPA dropped to 0.00 💀</p>
+  <div class="box">
+    <h2>RETAKE 💀</h2>
+    <p id="msg"></p>
 
-  <button class="try" id="tryBtn">Try Again 🔁</button>
-  <button class="follow" id="followBtn">Follow the Donkey 🫏</button>
+    <button class="try" id="tryBtn">Try Again 🔁</button>
+
+    <!-- ✅ Safari + Chrome SAFE -->
+    <a class="follow" href="https://www.facebook.com/RealUtsha" target="_blank">
+      Follow the Donkey 🫏
+    </a>
+  </div>
 </div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const music = document.getElementById("music");
 
 canvas.width = 420;
 canvas.height = 600;
 
-let donkey = {
-  x: 80,
-  y: 260,
-  size: 26,
-  velocity: 0
+let donkey, pipes, cgpa, gameOver, velocity;
+
+function resetGame() {
+  donkey = {x:80,y:250};
+  velocity = 0;
+  pipes = [];
+  cgpa = 4.00;
+  gameOver = false;
+  document.getElementById("popup").style.display="none";
+}
+
+document.getElementById("tryBtn").onclick = function(e){
+  e.stopPropagation();
+  resetGame();
 };
 
-let gravity = 0.35;
-let jumpPower = -7;
-let pipes = [];
-let particles = [];
-let crashTexts = [];
-
-let score = 0;
-let cgpa = 4.00;
-let gameOver = false;
-let speed = 2.2;
-let frame = 0;
-let started = false;
-let musicStarted = false;
-let shakeTime = 0;
-let flashTime = 0;
-
-const roasts = [
-  "Bro studied 5 min before exam 💀",
-  "Attendance said bye bye 😂",
-  "Viva sir destroyed you 😭",
-  "Assignment submitted wrong file 🤡",
-  "CGPA crashed 💻",
-  "Retake loading... 99%",
-  "Academic comeback failed 😭",
-  "Donkey semester activated 🫏",
-  "Sir said: explain your code 💀",
-  "Group project carried by nobody 🤡"
-];
-
-function startMusic() {
-  if (!musicStarted) {
-    music.volume = 0.45;
-    music.play().catch(() => {});
-    musicStarted = true;
-  }
+function jump(){
+  if(!gameOver) velocity = -7;
 }
 
-function jump() {
-  startMusic();
-  started = true;
+document.addEventListener("click",function(e){
+  if(e.target.tagName==="BUTTON" || e.target.tagName==="A") return;
+  jump();
+});
 
-  if (!gameOver) {
-    donkey.velocity = jumpPower;
-  }
-}
-
-/* ✅ FIXED TOUCH: buttons will not trigger jump */
-document.addEventListener("touchstart", function(e) {
-  if (e.target.tagName === "BUTTON") return;
+document.addEventListener("touchstart",function(e){
+  if(e.target.tagName==="BUTTON" || e.target.tagName==="A") return;
   e.preventDefault();
   jump();
-}, { passive: false });
+},{passive:false});
 
-document.addEventListener("click", function(e) {
-  if (e.target.tagName === "BUTTON") return;
-  jump();
-});
-
-document.addEventListener("keydown", function(e) {
-  if (e.code === "Space") jump();
-});
-
-/* ✅ FIXED BUTTONS */
-document.getElementById("tryBtn").addEventListener("click", function(e) {
-  e.stopPropagation();
-  location.reload();
-});
-
-document.getElementById("followBtn").addEventListener("click", function(e) {
-  e.stopPropagation();
-  window.location.href = "https://www.facebook.com/RealUtsha";
-});
-
-document.getElementById("tryBtn").addEventListener("touchstart", function(e) {
-  e.stopPropagation();
-  location.reload();
-}, { passive: true });
-
-document.getElementById("followBtn").addEventListener("touchstart", function(e) {
-  e.stopPropagation();
-  window.location.href = "https://www.facebook.com/RealUtsha";
-}, { passive: true });
-
-function createPipe() {
-  let top = Math.random() * 230 + 60;
-  pipes.push({
-    x: canvas.width,
-    top: top,
-    bottom: top + 180,
-    hit: false,
-    passed: false
-  });
+function createPipe(){
+  let top=Math.random()*250+50;
+  pipes.push({x:420,top:top,bot:top+150});
 }
 
-function createCrashEffect(x, y) {
-  shakeTime = 14;
-  flashTime = 8;
-
-  for (let i = 0; i < 35; i++) {
-    particles.push({
-      x: x,
-      y: y,
-      vx: (Math.random() - 0.5) * 9,
-      vy: (Math.random() - 0.5) * 9,
-      life: 35,
-      size: Math.random() * 5 + 2,
-      color: Math.random() > 0.5 ? "#ff3333" : "#00e0ff"
-    });
-  }
-
-  crashTexts.push({
-    text: "CRASH! 💥",
-    x: x - 45,
-    y: y - 35,
-    life: 45
-  });
-}
-
-function updateCrashEffects() {
-  particles.forEach(p => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.15;
-    p.life--;
-  });
-
-  particles = particles.filter(p => p.life > 0);
-
-  crashTexts.forEach(t => {
-    t.y -= 1;
-    t.life--;
-  });
-
-  crashTexts = crashTexts.filter(t => t.life > 0);
-}
-
-function drawCrashEffects() {
-  particles.forEach(p => {
-    ctx.save();
-    ctx.globalAlpha = p.life / 35;
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 15;
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  });
-
-  crashTexts.forEach(t => {
-    ctx.save();
-    ctx.globalAlpha = t.life / 45;
-    ctx.fillStyle = "#ff3333";
-    ctx.shadowColor = "#ff3333";
-    ctx.shadowBlur = 15;
-    ctx.font = "bold 26px Arial";
-    ctx.fillText(t.text, t.x, t.y);
-    ctx.restore();
-  });
-}
-
-function hit(pipe) {
-  if (pipe && pipe.hit) return;
-  if (pipe) pipe.hit = true;
-
-  cgpa -= 0.25;
-  createCrashEffect(donkey.x, donkey.y);
-
-  const msg = roasts[Math.floor(Math.random() * roasts.length)];
-  document.getElementById("msg").innerText = msg;
-
-  if (cgpa <= 0) {
-    cgpa = 0;
-    gameOver = true;
-    document.getElementById("msg").innerText =
-      "Final Score: " + score + " | CGPA dropped to 0.00 💀";
-    document.getElementById("popup").style.display = "block";
+function hit(){
+  cgpa-=0.25;
+  if(cgpa<=0){
+    cgpa=0;
+    gameOver=true;
+    document.getElementById("msg").innerText="CGPA dropped to 0.00 💀";
+    document.getElementById("popup").style.display="flex";
   }
 }
 
-function drawDonkey() {
-  ctx.save();
-  ctx.shadowColor = "#00e0ff";
-  ctx.shadowBlur = 18;
-  ctx.font = "44px Arial";
-  ctx.fillText("🫏", donkey.x - 22, donkey.y + 15);
-  ctx.restore();
-}
+function draw(){
+  ctx.clearRect(0,0,420,600);
 
-function drawPipes() {
-  pipes.forEach(pipe => {
-    ctx.save();
-    ctx.shadowColor = "#ff3333";
-    ctx.shadowBlur = 14;
-    ctx.fillStyle = "#ff3333";
-    ctx.fillRect(pipe.x, 0, 70, pipe.top);
-    ctx.fillRect(pipe.x, pipe.bottom, 70, canvas.height - pipe.bottom);
-    ctx.restore();
+  // donkey
+  ctx.font="40px Arial";
+  ctx.fillText("🫏",donkey.x,donkey.y);
 
-    ctx.fillStyle = "white";
-    ctx.font = "14px Arial";
-    ctx.fillText("RETAKE", pipe.x + 8, pipe.top - 12);
-    ctx.fillText("EXAM", pipe.x + 16, pipe.bottom + 24);
-  });
-}
+  // pipes
+  pipes.forEach(p=>{
+    ctx.fillStyle="red";
+    ctx.fillRect(p.x,0,60,p.top);
+    ctx.fillRect(p.x,p.bot,60,600);
 
-function drawText() {
-  ctx.fillStyle = "white";
-  ctx.font = "22px Arial";
-  ctx.fillText("Score: " + score, 16, 35);
-
-  ctx.fillStyle = "#00e0ff";
-  ctx.fillText("CGPA: " + cgpa.toFixed(2), 16, 65);
-
-  if (!started) {
-    ctx.fillStyle = "#ffd166";
-    ctx.font = "20px Arial";
-    ctx.fillText("Tap to Start 🫏", 140, 300);
-  }
-}
-
-function drawFlash() {
-  if (flashTime > 0) {
-    ctx.save();
-    ctx.globalAlpha = flashTime / 18;
-    ctx.fillStyle = "#ff3333";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.restore();
-    flashTime--;
-  }
-}
-
-function update() {
-  if (gameOver) return;
-
-  ctx.save();
-
-  if (shakeTime > 0) {
-    let sx = (Math.random() - 0.5) * 12;
-    let sy = (Math.random() - 0.5) * 12;
-    ctx.translate(sx, sy);
-    shakeTime--;
-  }
-
-  ctx.clearRect(-30, -30, canvas.width + 60, canvas.height + 60);
-
-  if (started) {
-    frame++;
-
-    donkey.velocity += gravity;
-    donkey.y += donkey.velocity;
-
-    if (frame % 110 === 0) {
-      createPipe();
+    if(donkey.x< p.x+60 && donkey.x+20>p.x &&
+      (donkey.y<p.top || donkey.y>p.bot)){
+      hit();
     }
 
-    pipes.forEach(pipe => {
-      pipe.x -= speed;
+    p.x-=3;
+  });
 
-      if (
-        donkey.x + donkey.size > pipe.x &&
-        donkey.x - donkey.size < pipe.x + 70 &&
-        (donkey.y - donkey.size < pipe.top || donkey.y + donkey.size > pipe.bottom)
-      ) {
-        hit(pipe);
-      }
+  velocity+=0.5;
+  donkey.y+=velocity;
 
-      if (!pipe.passed && pipe.x + 70 < donkey.x) {
-        score++;
-        pipe.passed = true;
-        if (score % 4 === 0) speed += 0.25;
-      }
-    });
+  if(donkey.y>600 || donkey.y<0) hit();
 
-    pipes = pipes.filter(pipe => pipe.x + 70 > 0);
-
-    if (donkey.y > canvas.height - 30 || donkey.y < 20) {
-      donkey.y = 260;
-      donkey.velocity = 0;
-      hit(null);
-    }
-  }
-
-  updateCrashEffects();
-
-  drawPipes();
-  drawDonkey();
-  drawCrashEffects();
-  drawText();
-  drawFlash();
-
-  ctx.restore();
-
-  requestAnimationFrame(update);
+  ctx.fillStyle="white";
+  ctx.fillText("CGPA: "+cgpa.toFixed(2),10,20);
 }
 
-update();
+setInterval(()=>{if(!gameOver)createPipe();},1500);
+setInterval(()=>{if(!gameOver)draw();},30);
+
+resetGame();
 </script>
 
 </body>
