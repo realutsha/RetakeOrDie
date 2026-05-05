@@ -1,154 +1,265 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>RetakeOrDie 💀</title>
-  <style>
-    body {
-      margin: 0;
-      background: #04101e;
-      color: white;
-      text-align: center;
-      font-family: Arial;
-      overflow: hidden;
-    }
+<title>RetakeOrDie 💀</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    h1 {
-      color: #00e0ff;
-      text-shadow: 0 0 10px #00e0ff;
-    }
+<style>
+body {
+  margin: 0;
+  background: #061526;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  overflow: hidden;
+}
 
-    canvas {
-      background: linear-gradient(#0b2a4a, #020817);
-      border: 3px solid #00e0ff;
-      border-radius: 15px;
-      box-shadow: 0 0 25px #00e0ff;
-    }
+h1 {
+  margin: 12px 0 4px;
+  color: #00e0ff;
+  text-shadow: 0 0 12px #00e0ff;
+  font-size: 24px;
+}
 
-    #popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #111;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 0 25px red;
-    }
+p {
+  margin: 0 0 8px;
+  color: #c9eaff;
+  font-size: 14px;
+}
 
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-  </style>
+canvas {
+  display: block;
+  margin: auto;
+  background: linear-gradient(#0b2a4a, #020817);
+  border: 3px solid #00e0ff;
+  border-radius: 16px;
+  box-shadow: 0 0 25px #00e0ff;
+  width: 92vw;
+  max-width: 420px;
+  height: 72vh;
+}
+
+#popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #111;
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 0 25px red;
+  width: 75%;
+  max-width: 320px;
+  z-index: 99;
+}
+
+button {
+  padding: 12px 18px;
+  margin: 8px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.try { background: #00e0ff; color: black; }
+.follow { background: #ff3333; color: white; }
+</style>
 </head>
 
 <body>
 
 <h1>RetakeOrDie 💀</h1>
+<p>Tap to jump 🫏 | Avoid retake pipes</p>
 
 <audio id="music" loop>
   <source src="music.mp3" type="audio/mpeg">
 </audio>
 
-<canvas id="game" width="400" height="600"></canvas>
+<canvas id="game"></canvas>
 
 <div id="popup">
-  <h2>RETAKE 💀</h2>
-  <p id="msg"></p>
-  <button onclick="location.reload()">Try Again</button>
-  <button onclick="window.location.href='https://www.facebook.com/RealUtsha'">Follow</button>
+  <h2>RETAKE CONFIRMED 💀</h2>
+  <p id="msg">CGPT became 0.00</p>
+  <button class="try" onclick="location.reload()">Try Again 🔁</button>
+  <button class="follow" onclick="window.location.href='https://www.facebook.com/RealUtsha'">Follow ❤️</button>
 </div>
 
 <script>
-let c = document.getElementById("game");
-let ctx = c.getContext("2d");
-let music = document.getElementById("music");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const music = document.getElementById("music");
 
-let bird = {x:80,y:250,v:0};
-let pipes = [];
-let cgpt = 4;
-let score = 0;
-let gameOver = false;
-let speed = 3;
+canvas.width = 420;
+canvas.height = 600;
 
-let roasts = [
-"Bro studied 5 min 💀",
-"Attendance 0 😂",
-"Viva destroyed you 😭",
-"Assignment wrong file 🤡",
-"CGPT crashed 💻"
-];
-
-document.onclick = () => {
-  if(!gameOver){
-    bird.v = -8;
-    music.play();
-  }
+let donkey = {
+  x: 80,
+  y: 260,
+  size: 26,
+  velocity: 0
 };
 
-function pipe(){
-  let top = Math.random()*300+50;
-  pipes.push({x:400,top:top,bot:top+150});
-}
+let gravity = 0.35;
+let jumpPower = -7;
+let pipes = [];
+let score = 0;
+let cgpt = 4.00;
+let gameOver = false;
+let speed = 2.2;
+let frame = 0;
+let started = false;
+let musicStarted = false;
 
-function draw(){
-  ctx.clearRect(0,0,400,600);
+const roasts = [
+  "Bro studied 5 min before exam 💀",
+  "Attendance said bye bye 😂",
+  "Viva sir destroyed you 😭",
+  "Assignment submitted wrong file 🤡",
+  "CGPT crashed 💻",
+  "Retake loading... 99%"
+];
 
-  // donkey
-  ctx.font="40px Arial";
-  ctx.fillText("🫏",bird.x,bird.y);
-
-  // pipes
-  pipes.forEach(p=>{
-    ctx.fillStyle="red";
-    ctx.fillRect(p.x,0,60,p.top);
-    ctx.fillRect(p.x,p.bot,60,600);
-
-    if(bird.x< p.x+60 && bird.x+20>p.x &&
-      (bird.y< p.top || bird.y>p.bot)){
-        hit();
-    }
-
-    p.x-=speed;
-
-    if(p.x==bird.x){
-      score++;
-      if(score%3==0) speed+=0.3;
-    }
-  });
-
-  // gravity
-  bird.v+=0.5;
-  bird.y+=bird.v;
-
-  if(bird.y>600||bird.y<0){
-    hit();
+function startMusic() {
+  if (!musicStarted) {
+    music.volume = 0.45;
+    music.play().catch(() => {});
+    musicStarted = true;
   }
-
-  // text
-  ctx.fillStyle="white";
-  ctx.fillText("Score: "+score,10,20);
-  ctx.fillText("CGPT: "+cgpt.toFixed(2),10,40);
 }
 
-function hit(){
-  cgpt-=0.25;
+function jump() {
+  startMusic();
+  started = true;
+  if (!gameOver) {
+    donkey.velocity = jumpPower;
+  }
+}
 
-  let msg = roasts[Math.floor(Math.random()*roasts.length)];
+document.addEventListener("click", jump);
+document.addEventListener("touchstart", function(e) {
+  e.preventDefault();
+  jump();
+}, { passive: false });
+
+document.addEventListener("keydown", function(e) {
+  if (e.code === "Space") jump();
+});
+
+function createPipe() {
+  let top = Math.random() * 230 + 60;
+  pipes.push({
+    x: canvas.width,
+    top: top,
+    bottom: top + 180,
+    hit: false,
+    passed: false
+  });
+}
+
+function hit(pipe) {
+  if (pipe && pipe.hit) return;
+  if (pipe) pipe.hit = true;
+
+  cgpt -= 0.25;
+
+  const msg = roasts[Math.floor(Math.random() * roasts.length)];
   document.getElementById("msg").innerText = msg;
 
-  if(cgpt<=0){
-    gameOver=true;
-    document.getElementById("popup").style.display="block";
+  if (cgpt <= 0) {
+    cgpt = 0;
+    gameOver = true;
+    document.getElementById("popup").style.display = "block";
   }
 }
 
-setInterval(()=>{if(!gameOver) pipe();},1500);
-setInterval(()=>{if(!gameOver) draw();},30);
+function drawDonkey() {
+  ctx.save();
+  ctx.shadowColor = "#00e0ff";
+  ctx.shadowBlur = 18;
+  ctx.font = "44px Arial";
+  ctx.fillText("🫏", donkey.x - 22, donkey.y + 15);
+  ctx.restore();
+}
+
+function drawPipes() {
+  pipes.forEach(pipe => {
+    ctx.fillStyle = "#ff3333";
+    ctx.fillRect(pipe.x, 0, 70, pipe.top);
+    ctx.fillRect(pipe.x, pipe.bottom, 70, canvas.height - pipe.bottom);
+
+    ctx.fillStyle = "white";
+    ctx.font = "14px Arial";
+    ctx.fillText("RETAKE", pipe.x + 8, pipe.top - 12);
+    ctx.fillText("EXAM", pipe.x + 16, pipe.bottom + 24);
+  });
+}
+
+function drawText() {
+  ctx.fillStyle = "white";
+  ctx.font = "22px Arial";
+  ctx.fillText("Score: " + score, 16, 35);
+
+  ctx.fillStyle = "#00e0ff";
+  ctx.fillText("CGPT: " + cgpt.toFixed(2), 16, 65);
+
+  if (!started) {
+    ctx.fillStyle = "#ffd166";
+    ctx.font = "20px Arial";
+    ctx.fillText("Tap to Start 🫏", 140, 300);
+  }
+}
+
+function update() {
+  if (gameOver) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (started) {
+    frame++;
+
+    donkey.velocity += gravity;
+    donkey.y += donkey.velocity;
+
+    if (frame % 110 === 0) {
+      createPipe();
+    }
+
+    pipes.forEach(pipe => {
+      pipe.x -= speed;
+
+      if (
+        donkey.x + donkey.size > pipe.x &&
+        donkey.x - donkey.size < pipe.x + 70 &&
+        (donkey.y - donkey.size < pipe.top || donkey.y + donkey.size > pipe.bottom)
+      ) {
+        hit(pipe);
+      }
+
+      if (!pipe.passed && pipe.x + 70 < donkey.x) {
+        score++;
+        pipe.passed = true;
+        if (score % 4 === 0) speed += 0.25;
+      }
+    });
+
+    pipes = pipes.filter(pipe => pipe.x + 70 > 0);
+
+    if (donkey.y > canvas.height - 30 || donkey.y < 20) {
+      donkey.y = 260;
+      donkey.velocity = 0;
+      hit(null);
+    }
+  }
+
+  drawPipes();
+  drawDonkey();
+  drawText();
+
+  requestAnimationFrame(update);
+}
+
+update();
 </script>
 
 </body>
